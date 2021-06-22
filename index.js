@@ -10,7 +10,7 @@ app.get("/", (req, res) => {
 });
 
 //Middlewares
-app.use(bodyParser.json());
+app.use(bodyParser({ limit: "50mb" }));
 app.use(cors());
 
 app.use("/api", postRouter);
