@@ -12,6 +12,7 @@ app.get("/", (req, res) => {
 //Middlewares
 app.use(bodyParser({ limit: "50mb" }));
 app.use(cors());
+app.use('/uploads/images',express.static('images'))
 
 app.use("/api", postRouter);
 

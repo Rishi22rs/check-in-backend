@@ -13,7 +13,7 @@ exports.allPosts = (req, res) => {
 
 //getting all the post from the db near your location
 exports.allPostsNearby = (req, res) => {
-  let sql = `SELECT post_id,user_id,description,latitude,longitude,upvotes,datetime , 111.111 * DEGREES(ACOS(LEAST(1.0, COS(RADIANS(latitude)) * COS(RADIANS(?)) * COS(RADIANS(longitude - ?)) + SIN(RADIANS(latitude)) * SIN(RADIANS(?))))) AS distance_in_km,EXISTS(SELECT 1 FROM vote WHERE post_id = posts.post_id AND user_id = posts.user_id limit 1) as liked FROM posts`;
+  let sql = `SELECT post_id,user_id,img_url,description,latitude,longitude,upvotes,datetime , 111.111 * DEGREES(ACOS(LEAST(1.0, COS(RADIANS(latitude)) * COS(RADIANS(?)) * COS(RADIANS(longitude - ?)) + SIN(RADIANS(latitude)) * SIN(RADIANS(?))))) AS distance_in_km,EXISTS(SELECT 1 FROM vote WHERE post_id = posts.post_id AND user_id = posts.user_id limit 1) as liked FROM posts`;
 
   db.query(
     sql,
@@ -37,7 +37,7 @@ exports.allPostsNearby = (req, res) => {
       // res.json(result);
       // res.status(200).json({ Name: "rishi" });
     }
-  );
+  );np
 };
 
 // exports.insertPost=(req,res)=>{
@@ -50,41 +50,45 @@ exports.allPostsNearby = (req, res) => {
 // }
 
 exports.addPost = (req, res) => {
-  if (req.files === null) {
-    res.status(400).json({ err: "No file uploaded." });
-  }
-  const salt = Date.now();
-  if (req.files) {
-    const file = req.files.fileData;
-    file.mv(`${__dirname}/${salt + file.name}`, (err) => {
-      if (err) {
-        return res.status(500).json(err);
-      }
-    });
+  // if (req.files === null) {
+  //   res.status(400).json({ err: "No file uploaded." });
+  // }
+  // const salt = Date.now();
+  // if (req.files) {
+  //   const file = req.files.fileData;
+  //   file.mv(`${__dirname}/${salt + file.name}`, (err) => {
+  //     if (err) {
+  //       return res.status(500).json(err);
+  //     }
+  //   });
 
-    let sql = `INSERT INTO posts (user_id,img_url,description,latitude,longitude,datetime) VALUES(?,?,?,?,?,?)`;
-    let c = 0;
-    db.query(
-      sql,
-      [
-        req.body.user_id,
-        `${API}${salt + file.name}`,
-        req.body.description,
-        req.body.latitude,
-        req.body.longitude,
-        req.body.datetime,
-      ],
-      (err, result) => {
-        if (err)
-          return res.json({
-            error: "Error in uploading the post.",
-            Error: err,
-          });
-        res.json(result);
-      }
-    );
-  }
-};
+  const destination=`./images/${Date.now()+req.body.latitude}.jpg`
+  fs.writeFile(destination, req.body.base64, 'base64', (err) => {
+    if (err) throw err
+  })
+
+  let sql = `INSERT INTO posts (user_id,img_url,description,latitude,longitude,datetime) VALUES(?,?,?,?,?,?)`;
+  let c = 0;
+  db.query(
+    sql,
+    [
+      req.body.user_id,
+      destination,
+      req.body.description, 
+      req.body.latitude,
+      req.body.longitude,
+      req.body.datetime,
+    ],
+    (err, result) => {
+      if (err)
+        return res.json({
+          error: "Error in uploading the post.",
+          Error: err,
+        });
+      res.json(result);
+    }
+  );
+}
 
 exports.followPlace = (req, res) => {
   const sql = `INSERT INTO following_location (user_id,latitude,longitude,datetime) VALUES (?,?,?,?)`;
